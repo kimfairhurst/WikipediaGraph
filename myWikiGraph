@@ -1,0 +1,85 @@
+mport java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.TreeSet;
+
+public class MyWikiGraph implements WikiGraph {
+	private HashMap<String, Set<String>> previous;
+	private HashMap<String, Integer> counter;
+	private HashMap<String, String> nextLink;
+	private Set<String> pageList;
+	private int cycle = 0;
+
+	public void explore(String title) {
+		int i = 0;
+	
+		while (i == 0) {
+			cycle++;
+
+			String nextPageName = LinkFollower.getFirstLink(title);		
+			
+			// System.out.println(title);
+			if (cycle == 1) {
+				pageList = new HashSet<String>();
+				previous = new HashMap<String, Set<String>>();
+				Set<String> init = new HashSet<String>();
+				nextLink = new HashMap<String, String>();
+				previous.put(title, init);
+				counter = new HashMap<String, Integer>();
+			}
+			pageList.add(title);
+			if (cycle != 1) {
+				for (String s : previous.keySet()) {
+					if (previous.get(s).contains(title)) {
+						i = 1;
+						break;
+					}
+				}
+			}
+			
+			nextLink.put(title, nextPageName);
+			
+			counter.put(title, -1);
+			for (String s: counter.keySet()){
+				counter.put(s, counter.get(s)+1);
+			}
+			
+			if (cycle == 1) {
+				Set<String> newSet = new HashSet<String>();
+				newSet.add(title);
+				previous.put(nextPageName, newSet);
+			} else if (previous.get(nextPageName) == null) {
+				Set<String> newSet = new HashSet<String>();
+				newSet.add(title);
+				previous.put(nextPageName, newSet);
+			} else {// if (previous.get(nextPageName).contains(title)) {
+				previous.get(nextPageName).add(title);
+			}
+
+			title = nextPageName;
+		}
+	}
+
+	public Set<String> getVertices() {
+		return pageList;
+	}
+
+	public String nextTitle(String title) {
+		return nextLink.get(title);
+	}
+
+	public Set<String> prevTitles(String title) {
+		return previous.get(title);
+	}
+
+	public int distanceToCycle(String title) {
+		return counter.get(title);
+	}
+
+	public static void main(String[] str) {
+		MyWikiGraph test = new MyWikiGraph();
+		test.explore("Puppet");
+		GraphDrawer.writePng(test, "Puppet");
+	}
+
+}
